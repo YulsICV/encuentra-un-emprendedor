@@ -1,39 +1,48 @@
-// src/components/Emprendedores.jsx
 import { useState } from 'react'
 import TarjetaEmprendedor from './TarjetaEmprendedor'
 import { EMPRENDEDORES } from '../data/emprendedores'
 
-export default function Emprendedores({ busqueda }) {
+export default function Emprendedores({ busqueda, sector }) {
   const [contactado, setContactado] = useState(null)
   const [pedidoA, setPedidoA]       = useState(null)
 
   const termino = busqueda.toLowerCase()
-  const filtrados = termino
-    ? EMPRENDEDORES.filter(e =>
+
+  // Primero filtrá por búsqueda, luego por sector
+  const filtrados = EMPRENDEDORES
+    .filter(e => {
+      if (!termino) return true
+      return (
         e.nombre.toLowerCase().includes(termino)    ||
         e.negocio.toLowerCase().includes(termino)   ||
         e.sector.toLowerCase().includes(termino)    ||
         e.provincia.toLowerCase().includes(termino) ||
         e.tags.some(t => t.toLowerCase().includes(termino))
       )
-    : EMPRENDEDORES
+    })
+    .filter(e => {
+      if (!sector) return true
+      // Comparación flexible — "Comida & Bebidas" matchea "Comida & Repostería"
+      return e.sector.toLowerCase().includes(sector.split(' & ')[0].toLowerCase())
+    })
+
+  const tituloSeccion = () => {
+    if (busqueda) return `Resultados para "${busqueda}" (${filtrados.length})`
+    if (sector)   return `${sector} (${filtrados.length})`
+    return 'Conocé a los emprendedores'
+  }
 
   return (
     <section className="emprendedores">
       <div className="section-header">
-        <h2>
-          {busqueda
-            ? `Resultados para "${busqueda}" (${filtrados.length})`
-            : 'Conocé a los emprendedores'
-          }
-        </h2>
+        <h2>{tituloSeccion()}</h2>
         <a className="ver-todos">Explorar todos →</a>
       </div>
 
       {filtrados.length === 0 ? (
         <div className="sin-resultados">
-          <p>😕 No encontramos resultados para <strong>{busqueda}</strong></p>
-          <p>Intentá con otro término o explorá por sector.</p>
+          <p>😕 No hay emprendedores en <strong>{sector || busqueda}</strong> todavía.</p>
+          <p>¡Pronto habrá más! 🌱</p>
         </div>
       ) : (
         <div className="emprendedores-lista">

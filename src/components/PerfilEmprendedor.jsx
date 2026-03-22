@@ -1,7 +1,9 @@
 // src/components/PerfilEmprendedor.jsx
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { EMPRENDEDORES } from '../data/emprendedores'
+import RegistroCliente from './RegistroCliente'
+import FormularioPedido from './FormularioPedido'
 
 function calcularPrecio(original, descuento) {
     return Math.round(original * (1 - descuento / 100))
@@ -11,7 +13,7 @@ function formatColones(n) {
     return '₡' + n.toLocaleString('es-CR')
 }
 
-function TabProductos({ productos }) {
+function TabProductos({ productos, onPedir }) {
     return (
         <div className="tab-grid">
             {productos.map(p => (
@@ -19,7 +21,11 @@ function TabProductos({ productos }) {
                     <div className="producto-emoji">{p.emoji}</div>
                     <p className="producto-nombre">{p.nombre}</p>
                     <p className="producto-precio">{formatColones(p.precio)}</p>
-                    <button className="btn-pedir" disabled={!p.disponible}>
+                    <button
+                        className="btn-pedir"
+                        disabled={!p.disponible}
+                        onClick={() => p.disponible && onPedir(p)}
+                    >
                         {p.disponible ? 'Pedir' : 'Agotado'}
                     </button>
                 </div>
@@ -28,7 +34,7 @@ function TabProductos({ productos }) {
     )
 }
 
-function TabOfertas({ ofertas }) {
+function TabOfertas({ ofertas, onPedir }) {
     return (
         <div className="tab-grid">
             {ofertas.map(o => (
@@ -46,7 +52,18 @@ function TabOfertas({ ofertas }) {
                                 </span>
                                 <span className="precio-viejo">{formatColones(o.original)}</span>
                             </div>
-                            <button className="btn-pedir">Pedir</button>
+                            <button
+                                className="btn-pedir"
+                                onClick={() => onPedir({
+                                    id: o.id,
+                                    emoji: o.emoji,
+                                    nombre: o.nombre,
+                                    precio: calcularPrecio(o.original, o.descuento),
+                                    disponible: true,
+                                })}
+                            >
+                                Pedir
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -144,22 +161,40 @@ function TabChat({ negocio, avatar }) {
 
 export default function PerfilEmprendedor({ onVolver }) {
     const { id } = useParams()
+    const navigate = useNavigate()
     const [tabActiva, setTabActiva] = useState('productos')
+    const [clienteActivo, setClienteActivo] = useState(null)
+    const [vista, setVista] = useState(null)
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null)
 
-    // Buscá el emprendedor por id de la URL
     const perfil = EMPRENDEDORES.find(e => e.id === Number(id))
 
-    // Si no existe mostrá un mensaje
     if (!perfil) {
         return (
             <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
                 <p style={{ fontSize: '2rem' }}>😕</p>
                 <h2>Emprendedor no encontrado</h2>
-                <button className="btn-primary" onClick={onVolver}>
-                    {'← Volver'}
-                </button>
+                <button className="btn-primary" onClick={onVolver}>{'← Volver'}</button>
             </div>
         )
+    }
+
+    const handlePedir = (producto) => {
+        setProductoSeleccionado(producto)
+        if (clienteActivo) {
+            setVista('pedido')
+        } else {
+            setVista('registro')
+        }
+    }
+
+    const handleRegistrado = (cliente) => {
+        setClienteActivo(cliente)
+        setVista('pedido')
+    }
+
+    const handleConfirmado = () => {
+        setTimeout(() => setVista(null), 2500)
     }
 
     const TABS = [
@@ -171,6 +206,26 @@ export default function PerfilEmprendedor({ onVolver }) {
 
     return (
         <div className="perfil-publico">
+
+            {/* Modales */}
+
+            {vista === 'registro' && (
+                <RegistroCliente
+                    onRegistrado={handleRegistrado}
+                    onYaTengo={() => navigate('/login')}  // ← antes era setVista(null)
+                    onCancelar={() => setVista(null)}
+                />
+            )}
+
+            {vista === 'pedido' && productoSeleccionado && clienteActivo && (
+                <FormularioPedido
+                    producto={productoSeleccionado}
+                    emprendedor={perfil.negocio}
+                    cliente={clienteActivo}
+                    onConfirmar={handleConfirmado}
+                    onCancelar={() => setVista(null)}
+                />
+            )}
 
             <div className="perfil-hero">
                 <button className="btn-volver" onClick={onVolver}>{'← Volver'}</button>
@@ -195,7 +250,7 @@ export default function PerfilEmprendedor({ onVolver }) {
 
                 <p className="perfil-hero-desc">{perfil.descripcion}</p>
 
-                < div className="perfil-hero-btns">
+                <div className="perfil-hero-btns">
                     <a
                         className="btn-whatsapp"
                         href={`https://wa.me/${perfil.whatsapp}`}
@@ -214,6 +269,23 @@ export default function PerfilEmprendedor({ onVolver }) {
                     {perfil.facebook && <span className="red-chip">👍 {perfil.facebook}</span>}
                     {perfil.tiktok && <span className="red-chip">🎵 {perfil.tiktok}</span>}
                 </div>
+                {/* Métodos de pago */}
+                {perfil.metodosPago && perfil.metodosPago.length > 0 && (
+                    <div className="perfil-pagos">
+                        <p className="perfil-pagos-titulo">💳 Métodos de pago aceptados</p>
+                        <div className="perfil-pagos-lista">
+                            {perfil.metodosPago.map(m => (
+                                <div key={m.id} className="pago-chip">
+                                    <span>{m.icono}</span>
+                                    <div>
+                                        <p className="pago-tipo">{m.tipo}</p>
+                                        <p className="pago-detalle">{m.detalle}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="perfil-tabs">
@@ -229,12 +301,24 @@ export default function PerfilEmprendedor({ onVolver }) {
             </div>
 
             <div className="perfil-contenido">
-                {tabActiva === 'productos' && <TabProductos productos={perfil.productos} />}
-                {tabActiva === 'ofertas' && <TabOfertas ofertas={perfil.ofertas} />}
-                {tabActiva === 'reseñas' && <TabReseñas reseñas={perfil.reseñas_lista} estrellas={perfil.estrellas} total={perfil.reseñas} />}
-                {tabActiva === 'chat' && <TabChat negocio={perfil.negocio} avatar={perfil.avatar} />}
+                {tabActiva === 'productos' && (
+                    <TabProductos productos={perfil.productos} onPedir={handlePedir} />
+                )}
+                {tabActiva === 'ofertas' && (
+                    <TabOfertas ofertas={perfil.ofertas} onPedir={handlePedir} />
+                )}
+                {tabActiva === 'reseñas' && (
+                    <TabReseñas
+                        reseñas={perfil.reseñas_lista}
+                        estrellas={perfil.estrellas}
+                        total={perfil.reseñas}
+                    />
+                )}
+                {tabActiva === 'chat' && (
+                    <TabChat negocio={perfil.negocio} avatar={perfil.avatar} />
+                )}
             </div>
 
-        </div >
+        </div>
     )
 }

@@ -1,5 +1,8 @@
 // src/components/OfertasDelDia.jsx
 import { useState } from 'react'
+import RegistroCliente from './RegistroCliente'
+import FormularioPedido from './FormularioPedido'
+import { useNavigate } from 'react-router-dom'
 
 const OFERTAS = [
   {
@@ -48,8 +51,12 @@ function formatColones(monto) {
   return '₡' + monto.toLocaleString('es-CR')
 }
 
-export default function OfertasDelDia({ busqueda }) {
+export default function OfertasDelDia({ busqueda, clienteActivo, onClienteRegistrado }) {
   const [pedidos, setPedidos] = useState([])
+  const [vista, setVista] = useState(null)
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null)
+  const [cliente, setCliente] = useState(clienteActivo)
+  const navigate = useNavigate()
 
   const agregarPedido = (oferta) => {
     if (!pedidos.find(p => p.id === oferta.id)) {
@@ -59,17 +66,64 @@ export default function OfertasDelDia({ busqueda }) {
 
   const yaPedido = (id) => pedidos.some(p => p.id === id)
 
-  // Filtrar según búsqueda
+  const handleConfirmarCarrito = () => {
+    if (pedidos.length === 0) return
+    const total = pedidos.reduce((acc, p) => acc + calcularPrecio(p.precioOriginal, p.descuento), 0)
+    setProductoSeleccionado({
+      id: 0,
+      emoji: '🛒',
+      nombre: `Carrito (${pedidos.length} ${pedidos.length === 1 ? 'producto' : 'productos'})`,
+      precio: total,
+      disponible: true,
+    })
+    if (cliente) {
+      setVista('pedido')
+    } else {
+      setVista('registro')
+    }
+  }
+
+  const handleRegistrado = (nuevoCliente) => {
+    setCliente(nuevoCliente)
+    onClienteRegistrado(nuevoCliente)
+    setVista('pedido')
+  }
+
+  const handleConfirmado = () => {
+    setPedidos([])
+    setTimeout(() => setVista(null), 2500)
+  }
+
   const termino = busqueda?.toLowerCase() || ''
   const filtradas = termino
     ? OFERTAS.filter(o =>
-        o.titulo.toLowerCase().includes(termino) ||
-        o.emprendedor.toLowerCase().includes(termino)
-      )
+      o.titulo.toLowerCase().includes(termino) ||
+      o.emprendedor.toLowerCase().includes(termino)
+    )
     : OFERTAS
 
   return (
     <section className="ofertas">
+
+      {/* Modales */}
+      {vista === 'registro' && (
+        <RegistroCliente
+          onRegistrado={handleRegistrado}
+          onYaTengo={() => navigate('/login')}  // ← antes era setVista(null)
+          onCancelar={() => setVista(null)}
+        />
+      )}
+
+      {vista === 'pedido' && productoSeleccionado && cliente && (
+        <FormularioPedido
+          producto={productoSeleccionado}
+          emprendedor="Varios emprendedores"
+          cliente={cliente}
+          onConfirmar={handleConfirmado}
+          onCancelar={() => setVista(null)}
+        />
+      )}
+
       <div className="section-header">
         <h2>🔥 {busqueda ? `Ofertas para "${busqueda}"` : 'Ofertas del día'}</h2>
         <a className="ver-todos">Ver todas →</a>
@@ -88,16 +142,13 @@ export default function OfertasDelDia({ busqueda }) {
 
             return (
               <div key={oferta.id} className="oferta-card">
-
                 <div className={`oferta-img oferta-img--${oferta.color}`}>
                   <span>{oferta.emoji}</span>
                   <span className="badge-descuento">-{oferta.descuento}%</span>
                 </div>
-
                 <div className="oferta-body">
                   <p className="oferta-titulo">{oferta.titulo}</p>
                   <p className="oferta-emprendedor">🌱 {oferta.emprendedor}</p>
-
                   <div className="oferta-footer">
                     <div className="oferta-precios">
                       <span className="precio-nuevo">{formatColones(precioFinal)}</span>
@@ -112,7 +163,6 @@ export default function OfertasDelDia({ busqueda }) {
                     </button>
                   </div>
                 </div>
-
               </div>
             )
           })}
@@ -138,7 +188,11 @@ export default function OfertasDelDia({ busqueda }) {
               )}
             </strong>
           </div>
-          <button className="btn-primary" style={{ width: '100%', marginTop: '0.75rem' }}>
+          <button
+            className="btn-primary"
+            style={{ width: '100%', marginTop: '0.75rem' }}
+            onClick={handleConfirmarCarrito}
+          >
             Confirmar pedidos
           </button>
         </div>

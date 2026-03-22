@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 
 export default function TarjetaEmprendedor({ emprendedor, onContactar, onPedir }) {
-  const { avatar, nombre, negocio, sector, provincia, tags, descripcion, estrellas, reseñas } = emprendedor
+  const { avatar, nombre, negocio, sector, provincia, tags = [], descripcion, estrellas, reseñas } = emprendedor
   const navigate = useNavigate()
+
   return (
     <div className="perfil-card">
 

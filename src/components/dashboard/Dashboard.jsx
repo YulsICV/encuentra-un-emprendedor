@@ -4,12 +4,14 @@ import DashResumen from './DashResumen'
 import DashProductos from './DashProductos'
 import DashOfertas from './DashOfertas'
 import DashPedidos from './DashPedidos'
+import DashPagos from './DashPagos'
 
 const SECCIONES = [
   { id: 'resumen', icono: '📊', label: 'Resumen' },
   { id: 'productos', icono: '📦', label: 'Productos' },
   { id: 'ofertas', icono: '🔥', label: 'Ofertas' },
   { id: 'pedidos', icono: '🛒', label: 'Pedidos' },
+  { id: 'pagos',     icono: '💳', label: 'Métodos de pago'   },
 ]
 
 export default function Dashboard({ usuario,onSalir }) {
@@ -51,6 +53,7 @@ export default function Dashboard({ usuario,onSalir }) {
         {seccion === 'productos' && <DashProductos />}
         {seccion === 'ofertas' && <DashOfertas />}
         {seccion === 'pedidos' && <DashPedidos />}
+        {seccion === 'pagos' && <DashPagos />}
       </main>
 
     </div>

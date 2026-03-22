@@ -1,4 +1,4 @@
-// src/components/Hero.jsx
+
 import { useState } from 'react'
 
 export default function Hero({ busqueda, onBuscar, onNavegar }) {
