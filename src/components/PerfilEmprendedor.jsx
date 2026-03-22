@@ -159,15 +159,21 @@ function TabChat({ negocio, avatar }) {
     )
 }
 
-export default function PerfilEmprendedor({ onVolver }) {
+export default function PerfilEmprendedor({ onVolver, clienteActivo, onClienteRegistrado, pedidoPendiente, onPedidoPendiente, onNuevoPedido }) {
     const { id } = useParams()
     const navigate = useNavigate()
     const [tabActiva, setTabActiva] = useState('productos')
-    const [clienteActivo, setClienteActivo] = useState(null)
     const [vista, setVista] = useState(null)
     const [productoSeleccionado, setProductoSeleccionado] = useState(null)
 
     const perfil = EMPRENDEDORES.find(e => e.id === Number(id))
+    const clienteParaUsar = clienteActivo
+
+    if (clienteActivo && pedidoPendiente?.perfilId === Number(id) && vista !== 'pedido') {
+        setProductoSeleccionado(pedidoPendiente.producto)
+        setVista('pedido')
+        onPedidoPendiente(null)
+    }
 
     if (!perfil) {
         return (
@@ -181,19 +187,20 @@ export default function PerfilEmprendedor({ onVolver }) {
 
     const handlePedir = (producto) => {
         setProductoSeleccionado(producto)
-        if (clienteActivo) {
+        if (clienteParaUsar) {
             setVista('pedido')
         } else {
             setVista('registro')
         }
     }
 
-    const handleRegistrado = (cliente) => {
-        setClienteActivo(cliente)
+    const handleRegistrado = (nuevoCliente) => {
+        onClienteRegistrado(nuevoCliente)
         setVista('pedido')
     }
 
-    const handleConfirmado = () => {
+    const handleConfirmado = (datosPedido) => {
+        onNuevoPedido(datosPedido)
         setTimeout(() => setVista(null), 2500)
     }
 
@@ -207,21 +214,25 @@ export default function PerfilEmprendedor({ onVolver }) {
     return (
         <div className="perfil-publico">
 
-            {/* Modales */}
-
             {vista === 'registro' && (
                 <RegistroCliente
                     onRegistrado={handleRegistrado}
-                    onYaTengo={() => navigate('/login')}  // ← antes era setVista(null)
+                    onYaTengo={() => {
+                        onPedidoPendiente({
+                            producto: productoSeleccionado,
+                            perfilId: Number(id),
+                        })
+                        navigate('/login')
+                    }}
                     onCancelar={() => setVista(null)}
                 />
             )}
 
-            {vista === 'pedido' && productoSeleccionado && clienteActivo && (
+            {vista === 'pedido' && productoSeleccionado && clienteParaUsar && (
                 <FormularioPedido
                     producto={productoSeleccionado}
                     emprendedor={perfil.negocio}
-                    cliente={clienteActivo}
+                    cliente={clienteParaUsar}
                     onConfirmar={handleConfirmado}
                     onCancelar={() => setVista(null)}
                 />
@@ -229,7 +240,6 @@ export default function PerfilEmprendedor({ onVolver }) {
 
             <div className="perfil-hero">
                 <button className="btn-volver" onClick={onVolver}>{'← Volver'}</button>
-
                 <div className="perfil-hero-content">
                     <div className="perfil-hero-avatar">{perfil.avatar}</div>
                     <div className="perfil-hero-info">
@@ -269,7 +279,7 @@ export default function PerfilEmprendedor({ onVolver }) {
                     {perfil.facebook && <span className="red-chip">👍 {perfil.facebook}</span>}
                     {perfil.tiktok && <span className="red-chip">🎵 {perfil.tiktok}</span>}
                 </div>
-                {/* Métodos de pago */}
+
                 {perfil.metodosPago && perfil.metodosPago.length > 0 && (
                     <div className="perfil-pagos">
                         <p className="perfil-pagos-titulo">💳 Métodos de pago aceptados</p>

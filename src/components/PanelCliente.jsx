@@ -1,32 +1,4 @@
-// src/components/PanelCliente.jsx
 import { useState } from 'react'
-
-const PEDIDOS_MOCK = [
-  {
-    id: 'PC-001',
-    emprendedor: 'Dulces de Lucía',
-    producto: 'Carrito (2 productos)',
-    total: 20500,
-    estado: 'En preparación',
-    fecha: '21/03/2026',
-  },
-  {
-    id: 'PC-002',
-    emprendedor: 'TecnoSolano',
-    producto: 'Reparación de celular',
-    total: 6400,
-    estado: 'Entregado',
-    fecha: '18/03/2026',
-  },
-  {
-    id: 'PC-003',
-    emprendedor: 'Tejidos Ana Sofía',
-    producto: 'Blusa bordada',
-    total: 9000,
-    estado: 'Pendiente',
-    fecha: '21/03/2026',
-  },
-]
 
 const FAVORITOS_MOCK = [
   { id: 1, avatar: '👩‍🍳', negocio: 'Dulces de Lucía',  sector: 'Comida & Repostería' },
@@ -46,18 +18,93 @@ function formatColones(n) {
 }
 
 const SECCIONES = [
-  { id: 'pedidos',   icono: '📦', label: 'Mis pedidos'    },
-  { id: 'historial', icono: '📋', label: 'Historial'      },
-  { id: 'favoritos', icono: '❤️', label: 'Favoritos'      },
-  { id: 'datos',     icono: '👤', label: 'Mis datos'      },
+  { id: 'pedidos',   icono: '📦', label: 'Mis pedidos' },
+  { id: 'historial', icono: '📋', label: 'Historial'   },
+  { id: 'favoritos', icono: '❤️', label: 'Favoritos'   },
+  { id: 'datos',     icono: '👤', label: 'Mis datos'   },
 ]
 
-// ── PEDIDOS ──
+// ── DETALLE PEDIDO ──
+function DetallePedido({ pedido, onCerrar }) {
+  return (
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <div className="modal-header">
+          <h3>Detalle del pedido</h3>
+          <p>{pedido.id} · {pedido.fecha}</p>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <span className={`estado-badge estado-badge--${COLORES_ESTADO[pedido.estado]}`}>
+            {pedido.estado}
+          </span>
+        </div>
+
+        <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '10px 14px', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '2px' }}>Negocio</p>
+          <p style={{ fontSize: '14px', fontWeight: 800 }}>🌱 {pedido.emprendedor}</p>
+        </div>
+
+        {pedido.items && pedido.items.length > 0 && (
+          <div style={{ marginBottom: '1rem' }}>
+            <p style={{ fontSize: '12px', fontWeight: 800, color: 'var(--muted)', marginBottom: '8px' }}>
+              Productos
+            </p>
+            {pedido.items.map((item, i) => (
+              <div key={i} className="carrito-item" style={{ padding: '6px 0' }}>
+                <span style={{ fontSize: '13px' }}>{item.emoji} {item.nombre}</span>
+                <div className="carrito-item-derecha">
+                  <span className="carrito-cantidad">x{item.cantidad}</span>
+                  <span className="carrito-precio">{formatColones(item.subtotal)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '10px 14px', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '2px' }}>Entrega</p>
+          <p style={{ fontSize: '13px', fontWeight: 700 }}>
+            {pedido.entrega === 'domicilio' ? '🚚 A domicilio' : '🏪 Retiro en local'}
+          </p>
+          {pedido.direccion && (
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{pedido.direccion}</p>
+          )}
+        </div>
+
+        {pedido.nota && (
+          <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '10px 14px', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '2px' }}>Nota</p>
+            <p style={{ fontSize: '13px' }}>{pedido.nota}</p>
+          </div>
+        )}
+
+        <div className="pedido-total">
+          <span>Total</span>
+          <strong>{formatColones(pedido.total)}</strong>
+        </div>
+
+        <button className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} onClick={onCerrar}>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── PEDIDOS ACTIVOS ──
 function SeccionPedidos({ pedidos }) {
+  const [pedidoDetalle, setPedidoDetalle] = useState(null)
   const activos = pedidos.filter(p => p.estado !== 'Entregado')
+
   return (
     <div className="dash-seccion">
       <h2 className="dash-titulo">Mis pedidos activos</h2>
+
+      {pedidoDetalle && (
+        <DetallePedido pedido={pedidoDetalle} onCerrar={() => setPedidoDetalle(null)} />
+      )}
+
       {activos.length === 0 ? (
         <div className="sin-resultados">
           <p>😊 No tenés pedidos activos ahora mismo.</p>
@@ -72,11 +119,17 @@ function SeccionPedidos({ pedidos }) {
                   {p.estado}
                 </span>
               </div>
-              <p className="pedido-cliente">🏪 {p.emprendedor}</p>
+              <p className="pedido-cliente">🌱 {p.emprendedor}</p>
               <p className="pedido-producto">📦 {p.producto}</p>
               <div className="pedido-footer">
                 <span className="pedido-monto">{formatColones(p.total)}</span>
-                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{p.fecha}</span>
+                <button
+                  className="btn-ver"
+                  style={{ fontSize: '11px', padding: '4px 12px' }}
+                  onClick={() => setPedidoDetalle(p)}
+                >
+                  Ver detalle
+                </button>
               </div>
             </div>
           ))}
@@ -88,12 +141,17 @@ function SeccionPedidos({ pedidos }) {
 
 // ── HISTORIAL ──
 function SeccionHistorial({ pedidos }) {
+  const [pedidoDetalle, setPedidoDetalle] = useState(null)
   const entregados = pedidos.filter(p => p.estado === 'Entregado')
-  const total = entregados.reduce((acc, p) => acc + p.total, 0)
+  const total      = entregados.reduce((acc, p) => acc + p.total, 0)
 
   return (
     <div className="dash-seccion">
       <h2 className="dash-titulo">Historial de compras</h2>
+
+      {pedidoDetalle && (
+        <DetallePedido pedido={pedidoDetalle} onCerrar={() => setPedidoDetalle(null)} />
+      )}
 
       <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
         <div className="stat-card stat-card--mint">
@@ -118,15 +176,19 @@ function SeccionHistorial({ pedidos }) {
             <div key={p.id} className="pedido-item">
               <div className="pedido-header">
                 <span className="pedido-id">{p.id}</span>
-                <span className={`estado-badge estado-badge--mint`}>
-                  {p.estado}
-                </span>
+                <span className="estado-badge estado-badge--mint">{p.estado}</span>
               </div>
-              <p className="pedido-cliente">🏪 {p.emprendedor}</p>
+              <p className="pedido-cliente">🌱 {p.emprendedor}</p>
               <p className="pedido-producto">📦 {p.producto}</p>
               <div className="pedido-footer">
                 <span className="pedido-monto">{formatColones(p.total)}</span>
-                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{p.fecha}</span>
+                <button
+                  className="btn-ver"
+                  style={{ fontSize: '11px', padding: '4px 12px' }}
+                  onClick={() => setPedidoDetalle(p)}
+                >
+                  Ver detalle
+                </button>
               </div>
             </div>
           ))}
@@ -154,10 +216,7 @@ function SeccionFavoritos({ favoritos, onVerPerfil }) {
                 <p className="perfil-nombre">{f.negocio}</p>
                 <p className="perfil-negocio">{f.sector}</p>
                 <div className="perfil-btns" style={{ marginTop: '8px' }}>
-                  <button
-                    className="btn-pedido"
-                    onClick={() => onVerPerfil(f.id)}
-                  >
+                  <button className="btn-pedido" onClick={() => onVerPerfil(f.id)}>
                     Ver perfil
                   </button>
                 </div>
@@ -172,7 +231,7 @@ function SeccionFavoritos({ favoritos, onVerPerfil }) {
 
 // ── DATOS ──
 function SeccionDatos({ cliente, onGuardar }) {
-  const [form, setForm]       = useState({ ...cliente })
+  const [form, setForm]         = useState({ ...cliente })
   const [editando, setEditando] = useState(false)
   const [guardado, setGuardado] = useState(false)
 
@@ -186,7 +245,6 @@ function SeccionDatos({ cliente, onGuardar }) {
   return (
     <div className="dash-seccion">
       <h2 className="dash-titulo">Mis datos</h2>
-
       <div className="prod-form">
         <div className="campo">
           <label>Nombre completo</label>
@@ -231,12 +289,43 @@ function SeccionDatos({ cliente, onGuardar }) {
 }
 
 // ── PANEL PRINCIPAL ──
-export default function PanelCliente({ cliente, onSalir, onVerPerfil }) {
-  const [seccion, setSeccion]   = useState('pedidos')
+export default function PanelCliente({ cliente, pedidos = [], onSalir, onVerPerfil }) {
+  const [seccion, setSeccion]           = useState('pedidos')
   const [datosCliente, setDatosCliente] = useState(cliente)
+  const [confirmarSalir, setConfirmarSalir] = useState(false) // ← nuevo
 
   return (
     <div className="dash-layout">
+
+      {/* Modal confirmar cierre de sesión */}
+      {confirmarSalir && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ textAlign: 'center', maxWidth: '340px' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👋</div>
+            <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '.5rem' }}>
+              ¿Cerrás sesión?
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '1.5rem' }}>
+              Tu historial de pedidos se guardará cuando volvás a entrar.
+            </p>
+            <div className="btn-row">
+              <button
+                className="btn-secondary"
+                onClick={() => setConfirmarSalir(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-primary"
+                onClick={onSalir}
+                style={{ flex: 2 }}
+              >
+                Sí, cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <aside className="dash-sidebar">
         <div className="dash-perfil">
@@ -262,17 +351,17 @@ export default function PanelCliente({ cliente, onSalir, onVerPerfil }) {
           ))}
         </nav>
 
-        <button className="dash-salir" onClick={onSalir}>
-          {'← Salir'}
+        {/* ← Ahora abre el modal en vez de confirmar con window.confirm */}
+        <button className="dash-salir" onClick={() => setConfirmarSalir(true)}>
+          {'← Cerrar sesión'}
         </button>
       </aside>
 
       <main className="dash-main">
-        {seccion === 'pedidos'   && <SeccionPedidos   pedidos={PEDIDOS_MOCK} />}
-        {seccion === 'historial' && <SeccionHistorial  pedidos={PEDIDOS_MOCK} />}
+        {seccion === 'pedidos'   && <SeccionPedidos   pedidos={pedidos} />}
+        {seccion === 'historial' && <SeccionHistorial  pedidos={pedidos} />}
         {seccion === 'favoritos' && <SeccionFavoritos  favoritos={FAVORITOS_MOCK} onVerPerfil={onVerPerfil} />}
         {seccion === 'datos'     && <SeccionDatos      cliente={datosCliente} onGuardar={setDatosCliente} />}
-        {seccion === 'pagos'     && <SeccionPagos />}
       </main>
 
     </div>

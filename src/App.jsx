@@ -13,6 +13,10 @@ import Login from './components/Login'
 import Dashboard from './components/dashboard/Dashboard'
 import PerfilEmprendedor from './components/PerfilEmprendedor'
 import PanelCliente from './components/PanelCliente'
+import CentroAyuda from './components/legal/CentroAyuda'
+import Terminos from './components/legal/Terminos'
+import Privacidad from './components/legal/Privacidad'
+import Membresias from './components/legal/Membresias'
 
 export default function App() {
   const navigate = useNavigate()
@@ -20,12 +24,18 @@ export default function App() {
   const [busqueda, setBusqueda] = useState('')
   const [sector, setSector] = useState('')
   const [clienteActivo, setClienteActivo] = useState(null)
+  const [pedidoPendiente, setPedidoPendiente] = useState(null)
+  const [pedidosCliente, setPedidosCliente] = useState([])
 
   const handleNavegar = (destino) => {
     if (destino === 'registro') { navigate('/registro'); return }
     if (destino === 'dashboard') { navigate('/login'); return }
     if (destino === 'login') { navigate('/login'); return }
     if (destino === 'mi-cuenta') { navigate('/mi-cuenta'); return }
+    if (destino === 'ayuda') { navigate('/ayuda'); return }
+    if (destino === 'terminos') { navigate('/terminos'); return }
+    if (destino === 'privacidad') { navigate('/privacidad'); return }
+    if (destino === 'membresias') { navigate('/membresias'); return }
     navigate('/')
     setTimeout(() => {
       const el = document.getElementById(destino)
@@ -49,31 +59,46 @@ export default function App() {
     navigate('/')
   }
 
+  const handleSalirCliente = () => {
+    setClienteActivo(null)
+    setPedidosCliente([])
+    navigate('/')
+  }
+
+  const handleNuevoPedido = (pedido) => {
+    setPedidosCliente(prev => [...prev, {
+      id: `PC-${Date.now()}`,
+      emprendedor: pedido.emprendedor,
+      producto: pedido.producto.nombre,
+      total: pedido.total,
+      estado: 'Pendiente',
+      fecha: new Date().toLocaleDateString('es-CR'),
+      entrega: pedido.entrega,
+      direccion: pedido.direccion || '',
+      nota: pedido.nota || '',
+      items: pedido.producto.items || [],
+    }])
+  }
+
   return (
     <Routes>
 
-      {/* ── INICIO ── */}
       <Route path="/" element={
         <>
-          <Navbar
-            seccionActiva="inicio"
-            onNavegar={handleNavegar}
-            clienteActivo={clienteActivo}
-          />
+          <Navbar seccionActiva="inicio" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
           <div id="inicio">
             <Hero busqueda={busqueda} onBuscar={setBusqueda} onNavegar={handleNavegar} />
           </div>
-          <div id="sectores">
-            <Sectores onSeleccionar={setSector} />
-          </div>
-          <div id="emprendedores">
-            <Emprendedores busqueda={busqueda} sector={sector} />
-          </div>
+          <div id="sectores"><Sectores onSeleccionar={setSector} /></div>
+          <div id="emprendedores"><Emprendedores busqueda={busqueda} sector={sector} /></div>
           <div id="ofertas">
             <OfertasDelDia
               busqueda={busqueda}
               clienteActivo={clienteActivo}
               onClienteRegistrado={setClienteActivo}
+              pedidoPendiente={pedidoPendiente}
+              onPedidoPendiente={setPedidoPendiente}
+              onNuevoPedido={handleNuevoPedido}
             />
           </div>
           <div id="sobre-nosotros"><SobreNosotros /></div>
@@ -81,7 +106,6 @@ export default function App() {
         </>
       } />
 
-      {/* ── LOGIN ── */}
       <Route path="/login" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
@@ -93,7 +117,6 @@ export default function App() {
         </>
       } />
 
-      {/* ── REGISTRO ── */}
       <Route path="/registro" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
@@ -101,7 +124,6 @@ export default function App() {
         </>
       } />
 
-      {/* ── DASHBOARD EMPRENDEDOR ── */}
       <Route path="/dashboard" element={
         usuarioActivo
           ? <>
@@ -111,31 +133,59 @@ export default function App() {
           : <RedirigirLogin onIr={() => navigate('/login')} />
       } />
 
-      {/* ── PERFIL PÚBLICO ── */}
       <Route path="/emprendedor/:id" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
-          <PerfilEmprendedor onVolver={() => navigate('/')} />
+          <PerfilEmprendedor
+            onVolver={() => navigate('/')}
+            clienteActivo={clienteActivo}
+            onClienteRegistrado={setClienteActivo}
+            pedidoPendiente={pedidoPendiente}
+            onPedidoPendiente={setPedidoPendiente}
+            onNuevoPedido={handleNuevoPedido}
+          />
         </>
       } />
 
-      {/* ── PANEL CLIENTE ── */}
       <Route path="/mi-cuenta" element={
         clienteActivo
           ? <>
             <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
             <PanelCliente
               cliente={clienteActivo}
-              onSalir={() => {
-                navigate('/')
-              }}
+              pedidos={pedidosCliente}
+              onSalir={handleSalirCliente}
               onVerPerfil={(id) => navigate(`/emprendedor/${id}`)}
             />
           </>
           : <RedirigirLogin onIr={() => navigate('/login')} />
       } />
+      <Route path="/ayuda" element={
+        <>
+          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+          <CentroAyuda onVolver={() => navigate('/')} />
+        </>
+      } />
 
-      {/* ── 404 ── */}
+      <Route path="/terminos" element={
+        <>
+          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+          <Terminos onVolver={() => navigate('/')} />
+        </>
+      } />
+
+      <Route path="/privacidad" element={
+        <>
+          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+          <Privacidad onVolver={() => navigate('/')} />
+        </>
+      } />
+      <Route path="/membresias" element={
+        <>
+          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+          <Membresias onVolver={() => navigate('/')} onNavegar={handleNavegar} />
+        </>
+      } />
       <Route path="*" element={<PaginaNoEncontrada onVolver={() => navigate('/')} />} />
 
     </Routes>

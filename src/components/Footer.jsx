@@ -1,8 +1,8 @@
+// src/components/Footer.jsx
 export default function Footer({ onNavegar }) {
   return (
     <footer className="footer">
 
-      {/* Top: columnas */}
       <div className="footer-grid">
 
         {/* Columna 1: marca */}
@@ -42,11 +42,21 @@ export default function Footer({ onNavegar }) {
             <li onClick={() => onNavegar('registro')}>Registrá tu negocio</li>
             <li>Publicar ofertas</li>
             <li>Recibir pedidos</li>
-            <li>Centro de ayuda</li>
+            <li onClick={() => onNavegar('membresias')}>Planes y membresías</li>
+            <li onClick={() => onNavegar('ayuda')}>Centro de ayuda</li>
           </ul>
         </div>
 
-        {/* Columna 4: contacto */}
+        {/* Columna 4: legal */}
+        <div className="footer-col">
+          <p className="footer-col-titulo">Legal</p>
+          <ul>
+            <li onClick={() => onNavegar('terminos')}>Términos y condiciones</li>
+            <li onClick={() => onNavegar('privacidad')}>Política de privacidad</li>
+          </ul>
+        </div>
+
+        {/* Columna 5: contacto */}
         <div className="footer-col">
           <p className="footer-col-titulo">Contacto</p>
           <ul>
@@ -58,10 +68,8 @@ export default function Footer({ onNavegar }) {
 
       </div>
 
-      {/* Divider */}
       <div className="footer-divider" />
 
-      {/* Bottom: créditos */}
       <div className="footer-bottom">
         <p>© 2026 Encuentra un Emprendedor · Todos los derechos reservados</p>
         <p className="footer-credito">
