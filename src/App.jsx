@@ -17,6 +17,8 @@ import CentroAyuda from './components/legal/CentroAyuda'
 import Terminos from './components/legal/Terminos'
 import Privacidad from './components/legal/Privacidad'
 import Membresias from './components/legal/Membresias'
+import PanelAdmin from './components/admin/PanelAdmin'
+import EmprendedoresEstrella from './components/EmprendedoresEstrella'
 
 export default function App() {
   const navigate = useNavigate()
@@ -26,12 +28,14 @@ export default function App() {
   const [clienteActivo, setClienteActivo] = useState(null)
   const [pedidoPendiente, setPedidoPendiente] = useState(null)
   const [pedidosCliente, setPedidosCliente] = useState([])
+  const [adminActivo, setAdminActivo] = useState(null)
 
   const handleNavegar = (destino) => {
     if (destino === 'registro') { navigate('/registro'); return }
     if (destino === 'dashboard') { navigate('/login'); return }
     if (destino === 'login') { navigate('/login'); return }
     if (destino === 'mi-cuenta') { navigate('/mi-cuenta'); return }
+    if (destino === 'admin') { navigate('/admin'); return }
     if (destino === 'ayuda') { navigate('/ayuda'); return }
     if (destino === 'terminos') { navigate('/terminos'); return }
     if (destino === 'privacidad') { navigate('/privacidad'); return }
@@ -47,6 +51,9 @@ export default function App() {
     if (usuario.tipo === 'cliente') {
       setClienteActivo(usuario)
       navigate(-1)
+    } else if (usuario.tipo === 'admin') {
+      setAdminActivo(usuario)
+      navigate('/admin')
     } else {
       setUsuarioActivo(usuario)
       navigate('/dashboard')
@@ -83,12 +90,18 @@ export default function App() {
   return (
     <Routes>
 
+      {/* ── INICIO ── */}
       <Route path="/" element={
         <>
           <Navbar seccionActiva="inicio" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
           <div id="inicio">
             <Hero busqueda={busqueda} onBuscar={setBusqueda} onNavegar={handleNavegar} />
           </div>
+
+          {/* ⭐ Slide emprendedores estrella */}
+          <EmprendedoresEstrella />
+
+          <div id="sectores"><Sectores onSeleccionar={setSector} /></div>
           <div id="sectores"><Sectores onSeleccionar={setSector} /></div>
           <div id="emprendedores"><Emprendedores busqueda={busqueda} sector={sector} /></div>
           <div id="ofertas">
@@ -106,6 +119,7 @@ export default function App() {
         </>
       } />
 
+      {/* ── AUTH ── */}
       <Route path="/login" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
@@ -124,6 +138,7 @@ export default function App() {
         </>
       } />
 
+      {/* ── PANELES PROTEGIDOS ── */}
       <Route path="/dashboard" element={
         usuarioActivo
           ? <>
@@ -131,20 +146,6 @@ export default function App() {
             <Dashboard usuario={usuarioActivo} onSalir={handleSalir} />
           </>
           : <RedirigirLogin onIr={() => navigate('/login')} />
-      } />
-
-      <Route path="/emprendedor/:id" element={
-        <>
-          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
-          <PerfilEmprendedor
-            onVolver={() => navigate('/')}
-            clienteActivo={clienteActivo}
-            onClienteRegistrado={setClienteActivo}
-            pedidoPendiente={pedidoPendiente}
-            onPedidoPendiente={setPedidoPendiente}
-            onNuevoPedido={handleNuevoPedido}
-          />
-        </>
       } />
 
       <Route path="/mi-cuenta" element={
@@ -160,6 +161,35 @@ export default function App() {
           </>
           : <RedirigirLogin onIr={() => navigate('/login')} />
       } />
+
+      <Route path="/admin" element={
+        adminActivo
+          ? <>
+            <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+            <PanelAdmin
+              admin={adminActivo}
+              onSalir={() => { setAdminActivo(null); navigate('/') }}
+            />
+          </>
+          : <RedirigirLogin onIr={() => navigate('/login')} />
+      } />
+
+      {/* ── PERFILES ── */}
+      <Route path="/emprendedor/:id" element={
+        <>
+          <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
+          <PerfilEmprendedor
+            onVolver={() => navigate('/')}
+            clienteActivo={clienteActivo}
+            onClienteRegistrado={setClienteActivo}
+            pedidoPendiente={pedidoPendiente}
+            onPedidoPendiente={setPedidoPendiente}
+            onNuevoPedido={handleNuevoPedido}
+          />
+        </>
+      } />
+
+      {/* ── PÁGINAS LEGALES ── */}
       <Route path="/ayuda" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
@@ -180,12 +210,15 @@ export default function App() {
           <Privacidad onVolver={() => navigate('/')} />
         </>
       } />
+
       <Route path="/membresias" element={
         <>
           <Navbar seccionActiva="" onNavegar={handleNavegar} clienteActivo={clienteActivo} />
           <Membresias onVolver={() => navigate('/')} onNavegar={handleNavegar} />
         </>
       } />
+
+      {/* ── 404 ── */}
       <Route path="*" element={<PaginaNoEncontrada onVolver={() => navigate('/')} />} />
 
     </Routes>

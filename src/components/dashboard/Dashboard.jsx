@@ -5,16 +5,20 @@ import DashProductos from './DashProductos'
 import DashOfertas from './DashOfertas'
 import DashPedidos from './DashPedidos'
 import DashPagos from './DashPagos'
+import DashPerfil from './DashPerfil'
+import DashCorreo from './DashCorreo'
 
 const SECCIONES = [
+  { id: 'perfil', icono: '👤', label: 'Mi Perfil' },
   { id: 'resumen', icono: '📊', label: 'Resumen' },
   { id: 'productos', icono: '📦', label: 'Productos' },
   { id: 'ofertas', icono: '🔥', label: 'Ofertas' },
   { id: 'pedidos', icono: '🛒', label: 'Pedidos' },
-  { id: 'pagos',     icono: '💳', label: 'Métodos de pago'   },
+  { id: 'pagos', icono: '💳', label: 'Métodos de pago' },
+  { id: 'correo', icono: '✉️', label: 'Correo' },
 ]
 
-export default function Dashboard({ usuario,onSalir }) {
+export default function Dashboard({ usuario, onSalir }) {
   const [seccion, setSeccion] = useState('resumen')
 
   return (
@@ -49,11 +53,13 @@ export default function Dashboard({ usuario,onSalir }) {
       </aside>
 
       <main className="dash-main">
+        {seccion === 'perfil' && <DashPerfil usuario={usuario} />}
         {seccion === 'resumen' && <DashResumen />}
         {seccion === 'productos' && <DashProductos />}
         {seccion === 'ofertas' && <DashOfertas />}
         {seccion === 'pedidos' && <DashPedidos />}
         {seccion === 'pagos' && <DashPagos />}
+        {seccion === 'correo' && <DashCorreo usuario={usuario} />}
       </main>
 
     </div>

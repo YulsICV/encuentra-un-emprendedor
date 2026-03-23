@@ -7,6 +7,7 @@ export const EMPRENDEDORES = [
     negocio: 'Dulces de Lucía',
     sector: 'Comida & Bebidas',
     provincia: 'San José',
+    estrella: true,           // ⭐ NUEVO CAMPO
     tags: ['Pasteles', 'Sin gluten', 'Pedido express'],
     descripcion: 'Repostera con 8 años de experiencia. Especializada en tortas personalizadas para cumpleaños, bodas y eventos.',
     estrellas: 4.9,
@@ -43,6 +44,7 @@ export const EMPRENDEDORES = [
     negocio: 'TecnoSolano',
     sector: 'Tecnología',
     provincia: 'Heredia',
+    estrella: true,           // ⭐ NUEVO CAMPO
     tags: ['Celulares', 'Laptops', 'Garantía'],
     descripcion: 'Técnico certificado en electrónica con más de 5 años arreglando dispositivos. Garantía en todas las reparaciones.',
     estrellas: 4.8,
@@ -75,6 +77,7 @@ export const EMPRENDEDORES = [
     negocio: 'Tejidos Ana Sofía',
     sector: 'Moda & Ropa',
     provincia: 'Cartago',
+    estrella: false,          // ⭐ NUEVO CAMPO
     tags: ['Hecho a mano', 'Bordados', 'Personalizado'],
     descripcion: 'Diseñadora textil con técnicas tradicionales costarricenses. Cada pieza es única y elaborada con materiales de alta calidad.',
     estrellas: 5.0,
