@@ -72,7 +72,6 @@ export default function Hero({ busqueda, onBuscar, onNavegar }) {
             Resultados para: <strong>{busqueda}</strong>
           </p>
         )}
-
       </div>
     </section>
   )

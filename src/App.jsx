@@ -102,7 +102,6 @@ export default function App() {
           <EmprendedoresEstrella />
 
           <div id="sectores"><Sectores onSeleccionar={setSector} /></div>
-          <div id="sectores"><Sectores onSeleccionar={setSector} /></div>
           <div id="emprendedores"><Emprendedores busqueda={busqueda} sector={sector} /></div>
           <div id="ofertas">
             <OfertasDelDia
